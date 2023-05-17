@@ -12,11 +12,13 @@ import java.util.Iterator;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.io.Serializable;
-
+import java.time.format.DateTimeFormatter;
+import java.util.Scanner;
 import java.time.LocalDateTime;
+ 
 public class Utilisateur implements Serializable {
     private String pseudo;
-    private Calendrier calendar;
+    private ArrayList<Planning> calendar;
     private ArrayList<Tache> taches;
     private ArrayList<Projet> projets;
     private LocalDate joursrnetable;
@@ -33,6 +35,52 @@ public class Utilisateur implements Serializable {
     private LocalTime DureeWork;
     private LocalTime DureeStudy;
     private long rendement;
+    public void planifier()
+    {  
+        Scanner s = new Scanner(System.in);
+        System.out.println("inter the day of start");
+        int day = s.nextInt();
+        int month = s.nextInt();
+        int year = s.nextInt();
+        System.out.println("inter the day of end");
+
+        LocalDate debut = LocalDate.of(year,month,day);
+         day = s.nextInt();
+         month = s.nextInt();
+         year = s.nextInt();
+
+        LocalDate fin = LocalDate.of(year,month,day);
+          
+        Planning plan ;
+
+        try{
+         plan = new Planning(debut,fin);
+       System.out.println("set the number of the time frames that you want to add");
+       int i= s.nextInt();
+       for(int j=0 ;i>j;j++)
+       {
+        plan.ajouterCreneaulibre();
+       }
+       System.out.println("set the number of the tasks that you want to add");
+        i= s.nextInt();
+       for(int j=0 ;i>j;j++)
+       {
+       plan.ajouterTache();
+       }
+       System.out.println("set the number of the projects that you want to add");
+       i= s.nextInt();
+      for(int j=0 ;i>j;j++)
+      {
+      plan.ajouterProjet();
+      }
+      plan.affichertaches();
+    }
+    catch(DateException e)
+    {
+     System.out.println("you can't choose a date before the current date, please try again");
+    }
+    }
+    
 
     public Utilisateur() {
     }
@@ -40,7 +88,7 @@ public class Utilisateur implements Serializable {
     public Utilisateur(String nom) {
         pseudo = nom;
         taches = new ArrayList<>();
-        calendar = new Calendrier();
+        calendar = new ArrayList<>();
         projets = new ArrayList<>();
         Good=new ArrayList<>();
         VeryGood=new ArrayList<>();
@@ -49,33 +97,7 @@ public class Utilisateur implements Serializable {
         rendement=0;
         moyrend=0;
     }
-
-    public void addTache(Tache tache) {
-        taches.add(tache);
-        sortTachesByDateAndPriority();
-        Categorie c=Categorie.HOBBY;
-        if(tache.getCategorie().compareTo(c)==0)
-        {
-         DureeHoby.plusHours(tache.getDuree().getHour()).plusMinutes(tache.getDuree().getMinute()).plusSeconds(tache.getDuree().getSecond());
-        }
-        else
-        {   c=Categorie.WORK;
-            if(tache.getCategorie().compareTo(c)==0)
-            {
-                DureeWork.plusHours(tache.getDuree().getHour()).plusMinutes(tache.getDuree().getMinute()).plusSeconds(tache.getDuree().getSecond());
-            }
-            else
-            {
-                c=Categorie.STUDIES;
-                if(tache.getCategorie().compareTo(c)==0)
-                {
-                    DureeStudy.plusHours(tache.getDuree().getHour()).plusMinutes(tache.getDuree().getMinute()).plusSeconds(tache.getDuree().getSecond());   
-                }
-                
-            }
-        }
-    }
-    
+/*     
     private void scheduleEndOfDayTask() {
         endOfDayTimer = new Timer();
         LocalTime endOfDay = LocalTime.of(23, 59, 59);
@@ -101,21 +123,8 @@ public class Utilisateur implements Serializable {
             ajouterBagdes();
         }
     }
-   
-    public void addPlanning(LocalDate debut, LocalDate fin ,ArrayList<Creneau> creneaux,ArrayList<Projet> p) throws DateException {
-        Planning newPlanning = new Planning(debut, fin);
-        for(Creneau c: creneaux)
-        {
-          c.setPlan(newPlanning);
-          this.calendar.ajouterCreneau(c);
-        }
-        for(Projet projet :p)
-        {
-          projet.setPlan(newPlanning);
-          this.projets.add(projet);
-        }
-        
-    }
+
+    
    
     public Planning getCurrentDayPlanning() {
         LocalDate currentDate = LocalDate.now();
@@ -191,13 +200,9 @@ public class Utilisateur implements Serializable {
         
     }
 
-    public void removeTache(Tache tache) {
-        taches.remove(tache);
-    }
+  
 
-    public void setCalendrier(Calendrier cal) {
-        this.calendar = cal;
-    }
+ 
 
     public void setPseudo(String nom) {
         pseudo = nom;
@@ -207,33 +212,23 @@ public class Utilisateur implements Serializable {
         return pseudo;
     }
 
-    public void addProjet(Projet projet) {
-        projets.add(projet);
-    }
 
-    public void removeProjet(Projet projet) {
-        projets.remove(projet);
-    }
+  
+*/
 
-    public Calendrier getCalendar() {
+    public ArrayList<Planning> getPlanning() {
         return calendar;
     }
 
-    public void affichertaches() {
-        for (Tache t : taches) {
-            System.out.println(t.getNom());
-        }
-    }
-
-    public ArrayList<Tache> getTaches() {
-        return taches;
-    }
-
-    public void ajouterplan(Planning plan)
+    public String getPseudo()
     {
-       planning.add(plan); 
+      return pseudo;
     }
-
+    public void setPseudo( String name)
+    {
+      this.pseudo=name;
+    }
+/* 
     public void  setrendement()
     {
         rendement=(calendar.getNumberOfCompletedTasksInDay(LocalDate.now())/calendar.getNumberOFtasksInDay(LocalDate.now()))*100;
@@ -244,9 +239,7 @@ public class Utilisateur implements Serializable {
         return rendement;
     }
     
-    public void sortTachesByDateAndPriority() {
-        Collections.sort(taches);
-    }
+    
 
     public void setTache(Tache tache)
     {
@@ -254,94 +247,15 @@ public class Utilisateur implements Serializable {
         this.taches.add(tache);
 
     }
- 
+
     public void sortTaches() {
         Collections.sort(taches, new TacheComparator());
         
     }
    
-    public void ajoutetachemanuel(Tache tache,Creneau creneau,boolean bloque)
-    {   if(creneau.islibre()){
-        int a= creneau.Duree().compareTo(tache.getDuree());
-       if(a<0)
-       {
-        System.out.println("la durée du creneau choisit est inférieure à la durée de votre tache , choisit un autre creneau");
-       }
-       else{
-        creneau.setBloque(bloque);
-        creneau.setlibre(false);
-        long durationInSeconds = Duration.between(creneau.Duree(), tache.getDuree() ).getSeconds();
-        int hours = (int) (durationInSeconds / 3600);
-        int minutes = (int) ((durationInSeconds % 3600) / 60);
-        int seconds = (int) (durationInSeconds % 60);
-        LocalTime time = LocalTime.of(hours,minutes,seconds);
-        int result = time.compareTo(creneau.min);
-        if(result>0||result==0)
-        {
-        int h=creneau.getDebut().getHour();
-        int min=creneau.getDebut().getMinute();
-        int sec=creneau.getDebut().getSecond();
-        LocalTime t=creneau.getDebut().toLocalTime().plusSeconds(sec).plusMinutes(min).plusHours(h);
-        LocalDateTime d = LocalDateTime.of(creneau.getDebut().getDayOfMonth(),creneau.getDebut().getMonth(),creneau.getDebut().getYear(),t.getHour(),t.getMinute(),t.getSecond());
-        Creneau creneau1= new Creneau(d, creneau.getFin());
-        this.calendar.ajouterCreneau(creneau1);
-        creneau.setDebut(d);
-        }
-        this.calendar.ajouterCreneau(creneau);
-        }
-        if(tache.getPeriodicite()>1)
-        {
-            taches.remove(tache);
-            tache.setPeriodicite(tache.getPeriodicite()-1);
-            taches.remove(tache);
-            sortTaches();
-        
-        }
-        else{ removeTache(tache);}
-       }
-    }
-   
-    private class TacheComparator implements Comparator<Tache> {
+    s
 
-        @Override
-        public int compare(Tache t1, Tache t2) {
-            if (t1.getDateLimite() == null && t2.getDateLimite() == null) {
-                // Both tasks have null deadline, consider them equal
-                return comparePriorities(t1.getPriorite(), t2.getPriorite());
-            } else if (t1.getDateLimite() == null) {
-                // t1 has null deadline, consider t2 greater
-                return 1;
-            } else if (t2.getDateLimite() == null) {
-                // t2 has null deadline, consider t1 greater
-                return -1;
-            } else {
-                int deadlineComparison = t1.getDateLimite().compareTo(t2.getDateLimite());
-                if (deadlineComparison != 0) {
-                    // If deadlines are not equal, return the comparison result
-                    return deadlineComparison;
-                } else {
-                    // Deadlines are equal, compare based on priority
-                    Priorite priorite1 = t1.getPriorite();
-                    Priorite priorite2 = t2.getPriorite();
-                    int priorityComparison = priorite2.comparePriority(priorite1);
-                    if (priorityComparison != 0) {
-                        // If priorities are not equal, return the comparison result
-                        return priorityComparison;
-                    } else {
-                        // Priorities are equal, compare based on task names
-                        return t1.getNom().compareTo(t2.getNom());
-                    }
-                }
-            }
-        }
-    
-        private int comparePriorities(Priorite priority1, Priorite priority2) {
-            // Compare the priorities based on their natural ordering
-            return Integer.compare(priority1.getPriorityOrder(), priority2.getPriorityOrder());
-        }
-    }
-
-    public void ajoutertachesauto(List<Tache> taches, LocalDateTime debut, LocalDateTime fin) {
+    public void ajoutertachesauto(List<Tache> taches, LocalDateTime debut, LocalDateTime fin,ArrayList<Creneau> c) {
        Iterator<Map.Entry<LocalDateTime, Creneau>> creneauIterator = calendar.getCreneaux().entrySet().iterator();
        Iterator<Tache> tacheIterator = taches.iterator();
 
@@ -367,13 +281,15 @@ public class Utilisateur implements Serializable {
             {
              if (!tache.isDecomposable())
              {
-              ajoutetachemanuel(tache, creneau, false);            
+              ajoutetachemanuel(tache, creneau, false); 
+              c.add(creneau);           
              }
              else{
                Creneau a=calendar.getPremierCreneauDisponible(debut,fin,tache.getDuree());
                if(a!=null)
                {
                 ajoutetachemanuel(tache,a,false);
+                c.add(a);
                }
                else
                {
@@ -390,13 +306,25 @@ public class Utilisateur implements Serializable {
                 
                Tache t = new Tache(tache.getNom(), tache.getDuree(), tache.getPriorite(), tache.getDateLimite(), tache.getCategorie(), true, tache.getPeriodicite(), tache.getEtat());
                addTache(t);
+               creneau.setTache(tache);
+               c.add(creneau);
             }
 
+            Boolean g=accept();
+            { 
+              if(g)
+              {
+                for(Creneau r:c)
+                {
+                  calendar.ajouterCreneau(r);
+                }
+            } 
+            }
             }
             }
 
         } 
     }
     
-     
+ */  
 } 
