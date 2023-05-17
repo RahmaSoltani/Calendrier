@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 import java.time.LocalTime;
 
-import java.util.Date ;
+import java.time.LocalDate ;
 
 
 public class Tache implements Serializable ,Comparable <Tache>{
@@ -12,15 +12,14 @@ public class Tache implements Serializable ,Comparable <Tache>{
     private String nom;
     private LocalTime duree;
     private Priorite priorite;
-    private Date dateLimite;
+    private LocalDate dateLimite;
     private Categorie categorie;
     private boolean decomposable;
     private int periodicite;
     private Etat etat ;
-    private Planning plan;
     private Projet projet ;
     public Tache(){} 
-    public Tache(String nom,LocalTime duree, Priorite priorite, Date dateLimite, Categorie categorie, boolean decomposable, int periodicite, Etat etat ) {
+    public Tache(String nom,LocalTime duree, Priorite priorite, LocalDate dateLimite, Categorie categorie, boolean decomposable, int periodicite ) {
         this.nom = nom;
         this.duree =duree;
         this.priorite = priorite;
@@ -28,12 +27,12 @@ public class Tache implements Serializable ,Comparable <Tache>{
         this.categorie = categorie;
         this.decomposable = decomposable;
         this.periodicite = periodicite;
-        this.etat=etat;
+        this.etat=Etat.NotRealized;
     }
 
     // Getters et Setters
 
-    public Tache(String tacheName, String tacheDurationStr, int tachePriorityValue, Date tacheDeadline,
+    public Tache(String tacheName, String tacheDurationStr, int tachePriorityValue, LocalDate tacheDeadline,
             Categorie tacheCategory, boolean tacheDecomposable, int tachePeriodicity, Etat tacheEtat) {
     }
 
@@ -61,11 +60,11 @@ public class Tache implements Serializable ,Comparable <Tache>{
         this.priorite = priorite;
     }
 
-    public Date getDateLimite() {
+    public LocalDate getDateLimite() {
         return dateLimite;
     }
 
-    public void setDateLimite(Date dateLimite) {
+    public void setDateLimite(LocalDate dateLimite) {
         this.dateLimite = dateLimite;
     }
 
@@ -150,16 +149,7 @@ public class Tache implements Serializable ,Comparable <Tache>{
     System.out.println("Décomposable: " + decomposable);
     System.out.println("Périodicité: " + periodicite);
     }
-   
-    public Planning getplan()
-    {
-        return plan;
-    }
-    
-    public void setPlan(Planning plan)
-    {
-        this.plan=plan;
-    }
+ 
     
     public void setProjet(Projet projet)
     {
