@@ -10,7 +10,7 @@ public class Application {
 
     public Application() {
         utilisateurs = new HashMap<>();
-        storageFilePath = "newfile.txt"; // Change this to the desired storage file path
+        storageFilePath = "newfile.txt"; 
     }
     public Utilisateur getUtilisateur(Utilisateur user)
     {
