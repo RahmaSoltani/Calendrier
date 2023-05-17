@@ -4,7 +4,7 @@ package TP;
 import java.io.*;
 public class Projet implements Serializable {
     private String nom;
-    private String description;
+    private String description;//
     private Planning plan ;
     private Boolean Completed;
     private int nbtaches;
