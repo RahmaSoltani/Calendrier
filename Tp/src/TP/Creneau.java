@@ -4,8 +4,7 @@ import java.time.LocalTime;
 import java.time.Duration;
 
 import java.io.Serializable;
-public class Creneau  implements Serializable{
-    
+public class Creneau  implements Serializable{    
     public  LocalTime min ;
     private LocalDateTime debut ;
     private LocalDateTime fin;
@@ -79,6 +78,10 @@ public class Creneau  implements Serializable{
     private void plantachesauto(ArrayList<> taches)
     {}
     */
+    public LocalTime getmin()
+    { 
+        return min;
+    }
     public Planning getplan()
     {
         return plan;
