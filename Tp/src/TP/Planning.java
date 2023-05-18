@@ -2,41 +2,52 @@ package TP;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.Collections;
 import java.time.LocalTime;
 import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
+
+
+
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.lang.reflect.Array;
-import java.time.Duration;
 public class Planning {
+    public int nbtaches=5;
     private LocalDate datedebut;
     private LocalDate datefin;
-    private int nbtachestermin;
-    private int encouragement;
-    private int Good;
-    private int VeryGood;
-    private int Excelent;
-    private LocalTime DureeHoby;
-    private LocalTime DureeWork;
-    private LocalTime DureeStudy; 
+    private int nbtachestermin=0;
+    private int encouragement=0;
+    private int Good=0;
+    private long rendjour=0;
+    private int VeryGood=0;
+    private int Excelent=0;
+    private int nbprojets;
+    private LocalTime DureeHoby= LocalTime.of(0,0,0);;
+    private LocalTime DureeWork= LocalTime.of(0,0,0);;
+    private LocalTime DureeStudy= LocalTime.of(0,0,0);; 
     private ArrayList<Tache> tachesnonplan;
     private ArrayList<Tache> tachesplan;
     private ArrayList<Projet> projets;
-    private Map<LocalDateTime, Creneau> creneauxlibres;
-    private Map<LocalDateTime,Creneau> creneauxplan;
-    private Creneau cr;
-    public Planning(){}
+    private ArrayList<Creneau> creneauxlibres;
+    private ArrayList<Creneau> creneauxplan;
+    
+    public Planning(){
+        creneauxlibres = new ArrayList<>();
+        creneauxplan = new ArrayList<>();
+        tachesnonplan= new ArrayList<>();
+        tachesplan = new ArrayList<>();
+    }
+  
+  
+
     public Planning(LocalDate datedebut, LocalDate datefin) throws DateException {
         LocalDate currentDate = LocalDate.now();
         
         if (datedebut.isBefore(currentDate) || datefin.isBefore(currentDate)) {
             throw new DateException("Provided date is before the current date.");
         }
-        creneauxlibres =new HashMap<LocalDateTime,Creneau>();
-        creneauxplan = new HashMap<LocalDateTime, Creneau>();
+        creneauxlibres =new ArrayList<Creneau>();
+        creneauxplan = new ArrayList<Creneau>();
         tachesnonplan = new ArrayList<>();
         tachesplan = new ArrayList<>();
         projets = new ArrayList<>();
@@ -56,6 +67,24 @@ public class Planning {
         return datefin;
     }
 
+    public void orderCreneauxlibreByDebut() {
+        Collections.sort(creneauxlibres, new Comparator<Creneau>() {
+            @Override
+            public int compare(Creneau c1, Creneau c2) {
+                return c1.getDebut().compareTo(c2.getDebut());
+            }
+        });
+    }
+   
+    public void orderCreneauxplanByDebut() {
+        Collections.sort(creneauxplan, new Comparator<Creneau>() {
+            @Override
+            public int compare(Creneau c1, Creneau c2) {
+                return c1.getDebut().compareTo(c2.getDebut());
+            }
+        });
+    }
+     
     public void setDatefin(LocalDate datefin) {
         this.datefin = datefin;
     }
@@ -75,6 +104,18 @@ public class Planning {
 
     public int getEncouragement() {
         return encouragement;
+    }
+
+    public void  annulerplanification(Creneau c)
+    { 
+    
+     supprimerTacheplan(c.getTache());
+     addTachenonplan(c.getTache());
+     c.setlibre(true);
+     c.setTache(null);
+     addCreneaulibre(c);
+     supprimerCreneauplan(c);
+
     }
 
     public void setEncouragement(int encouragement) {
@@ -126,11 +167,11 @@ public class Planning {
         nbtachestermin++;
     }
     
-  
     public ArrayList<Tache> getTachesplan() {
         return tachesplan;
     }
-   public ArrayList<Tache> getTachesnonplan()
+  
+    public ArrayList<Tache> getTachesnonplan()
    {
     return tachesnonplan;
    }
@@ -147,14 +188,31 @@ public class Planning {
         int min =s.nextInt();
         int h =s.nextInt();
         Creneau c=new Creneau(LocalDateTime.of(year,month,day,h,min,0),LocalDateTime.of(year,month,day,h,min,0));
-        addCreneau(c);
+        addCreneaulibre(c);
     }
-   public void addCreneauplan(Creneau creneau)
+   
+    public void addCreneauplan(Creneau creneau)
    { 
-      creneauxplan.put(creneau.getDebut(), creneau);
+      creneauxplan.add(creneau);
+      orderCreneauxplanByDebut();
     }
-    public void addCreneau(Creneau creneau) {
-        creneauxlibres.put(creneau.getDebut(), creneau);
+    
+    public void ajoutTache(Tache t)// called by the user
+    {
+        addTachenonplan(t);
+        if(t.getCategorie().equals(Categorie.HOBBY))
+        {
+        DureeHoby.plusHours(t.getDuree().getHour()).plusMinutes(t.getDuree().getMinute());
+        }
+        else if(t.getCategorie().equals(Categorie.STUDIES))
+        {
+        DureeStudy.plusHours(t.getDuree().getHour()).plusMinutes(t.getDuree().getMinute());
+        }
+        else 
+        {
+            DureeWork.plusHours(t.getDuree().getHour()).plusMinutes(t.getDuree().getMinute());
+        
+        }
     }
    
     public void ajouterProjet()
@@ -173,20 +231,83 @@ public class Planning {
         }
         addProjet(p);
     }
-    
-    public void supprimerCreneaulibre(Creneau creneau) {
-        creneauxlibres.remove(creneau.getDebut());
-    }
-    public void supprimerCreneauplan(Creneau creneau) {
-        creneauxplan.remove(creneau.getDebut());
+   
+    public  void setRendjour()
+    {
+    rendjour=getNumberOFtasksCompletedInDay(LocalDate.now())/getNumberOFtasksInDay(LocalDate.now());
     }
 
-    public boolean hasCreneaulibres(LocalDateTime debut) {
-        return creneauxlibres.containsKey(debut);
+  
+    public int getNumberOFtasksInDay(LocalDate date)
+    { int count=0;
+        
+        for (Creneau creneau : creneauxplan) {
+            LocalDate creneauDate = creneau.getDebut().toLocalDate(); // Assuming getDebut() returns LocalDateTime
+            if (creneauDate.equals(date)) {
+               
+                count++;
+            
+            }
+        }
+        
+        return count;
     }
-    public boolean  hasCreneauplan(LocalDateTime debut)
-    {
-        return creneauxplan.containsKey(debut);
+    
+    public void orderTachesplanByDateLimiteAndPriority() {
+        Collections.sort(tachesplan, new Comparator<Tache>() {
+            @Override
+            public int compare(Tache t1, Tache t2) {
+                int dateComparison = t1.getDateLimite().compareTo(t2.getDateLimite());
+                if (dateComparison != 0) {
+                    return dateComparison;
+                }
+                return t2.getPriorite().comparePriority(t1.getPriorite());
+            }
+        });
+    }
+    
+    public void orderTachesNonplanByDateLimiteAndPriority() {
+        Collections.sort(tachesnonplan, new Comparator<Tache>() {
+            @Override
+            public int compare(Tache t1, Tache t2) {
+                int dateComparison = t1.getDateLimite().compareTo(t2.getDateLimite());
+                if (dateComparison != 0) {
+                    return dateComparison;
+                }
+                return t2.getPriorite().comparePriority(t1.getPriorite());
+            }
+        });
+    }
+
+
+
+
+    public void supprimerCreneaulibre(Creneau creneau) {
+        creneauxlibres.remove(creneau);
+        orderCreneauxlibreByDebut();
+    }
+   
+    public void supprimerCreneauplan(Creneau creneau) {
+        creneauxplan.remove(creneau);
+        orderCreneauxplanByDebut();
+    }
+
+    public Creneau getCreneaulibres(LocalDateTime debut) {
+        for (Creneau creneau : creneauxlibres) {
+            if (creneau.getDebut().equals(debut)) {
+                return creneau;
+            }
+        }
+        return null;
+    }
+   
+    public Creneau getCreneauplan(LocalDateTime debut) {
+        for (Creneau creneau : creneauxplan) {
+            if (creneau.getDebut().equals(debut)) {
+                return creneau;
+            }
+        }
+        return null;
     }
   
     public Tache ajouterTache()
@@ -212,24 +333,66 @@ public class Planning {
         System.out.println("inter the periodicity");
         int per =s.nextInt();
         Tache t= new Tache(name,LocalTime.of(h,min),priorite, LocalDate.of(year,month,day),categorie, decomp, per);
-        addTachenonplan(t);
+        ajoutTache(t);
         return t;
     }
     
+    public void addBadges()
+    {
+       
+    if(getNumberOFtasksCompletedInDay(LocalDate.now())>=nbtaches)
+    {
+     encouragement++;
+     
+    }
+    if((encouragement%5)==0)
+    {
+        Good++;  
+          
+    }
+    if((Good%3)==0)
+    {
+        VeryGood++;
+      
+    }
+    if((VeryGood%3)==0)
+    {
+    Excelent++;
+    
+    }
+    }
+   
+    public int getNumberOFtasksCompletedInDay(LocalDate date)
+    { int count=0;
+        
+        for (Creneau creneau : creneauxplan) {
+            LocalDate creneauDate = creneau.getDebut().toLocalDate(); // Assuming getDebut() returns LocalDateTime
+            if (creneauDate.equals(date)) {
+               if(creneau.getTache().getEtat().compareTo(Etat.Completed)==0)
+               {
+                count++;
+               }
+            }
+        }
+        
+        return count;
+    }
+    
+
     public void addProjet(Projet p)
     {
         projets.add(p);
     }
     
-    public void addTachesplan(Tache t)
+    public void addTacheplan(Tache t)
     {
         tachesplan.add(t);
-        sortTachesplan();
+        orderTachesplanByDateLimiteAndPriority();
     }
  
     public void addTachenonplan(Tache tache) {
         tachesnonplan.add(tache);
-        sortTachesnonplan();
+        orderTachesNonplanByDateLimiteAndPriority();
         /* 
         Categorie c=Categorie.HOBBY;
         if(tache.getCategorie().compareTo(c)==0)
@@ -255,46 +418,45 @@ public class Planning {
         */
     }
     
-    public void sortTachesnonplan() {
-       // Collections.sort(tachesnonplan, new TacheComparator());
-        
+    public void supprimerTacheplan(Tache t)
+    {
+        tachesplan.remove(t);
+        orderTachesplanByDateLimiteAndPriority();
     }
    
-    public void sortTachesplan()
-   {
-    //Collections.sort(tachesplan, new TacheComparator());
-   }
-   
-   public void setCreneauxlibres(Map<LocalDateTime, Creneau> creneaux) {
+    public void supprimerTacheNonplan(Tache t)
+    {
+        tachesnonplan.remove(t);
+        orderTachesNonplanByDateLimiteAndPriority();
+    }
+ 
+    public void setCreneauxlibres(ArrayList<Creneau> creneaux) {
         this.creneauxlibres = creneaux;
     }
    
-    public void setCreneauxplan(Map<LocalDateTime, Creneau> creneaux) {
+    public void setCreneauxplan(ArrayList<Creneau> creneaux) {
         this.creneauxplan = creneaux;
     }
    
-    public Creneau getCreneaulibre(LocalDateTime debut) {
-        return creneauxlibres.get(debut);
-    }
-   
-    public Creneau getCreneauplan(LocalDateTime debut)
-    {
-        return creneauxplan.get(debut);
-    }
-
     public Boolean accept()
     {
       return true;
     }
    
-    public Map<LocalDateTime,Creneau> getCreneaux()
+    public ArrayList<Creneau> getCreneauxlibres()
     {
         return creneauxlibres;
     }
-   
+     
+    public ArrayList<Creneau> getCreneauxplan()
+    {
+        return creneauxplan;
+    }
+
     public void addCreneaulibre(Creneau creneau)
     { 
-        creneauxlibres.put(creneau.getDebut(),creneau);
+        creneauxlibres.add(creneau);
+        orderCreneauxlibreByDebut();
     }
 
     public void affichertaches() {
@@ -302,101 +464,52 @@ public class Planning {
             System.out.println(t.getNom());
         }
     }
-   /* 
-    public void ajoutertachesauto() {
-        Iterator<Map.Entry<LocalDateTime, Creneau>> creneauIterator = getCreneaux().entrySet().iterator();
-        Iterator<Tache> tacheIterator = taches.iterator();
- 
-   
-        while (creneauIterator.hasNext()) {
-          Map.Entry<LocalDateTime, Creneau> creneauEntry = creneauIterator.next();
-          Creneau creneau = creneauEntry.getValue();
-          
- 
- 
-         if (creneau.getDebut().isAfter(debut)) {
-           break;
-         }
-         }
-         while (creneauIterator.hasNext() && tacheIterator.hasNext()) {
-             Map.Entry<LocalDateTime, Creneau> creneauEntry = creneauIterator.next();
-             Creneau creneau = creneauEntry.getValue();
-             Tache tache = tacheIterator.next();
-             if(creneau.getDebut().isAfter(fin))
-             {
-                 break;
-             }
-             if(creneau.islibre() )
-             {
-              if (!tache.isDecomposable())
-              {
-               plantachemanuel(tache, creneau, false); 
-               c.add(creneau);           
-              }
-              else{
-                Creneau a=getPremierCreneauDisponible(debut,fin,tache.getDuree());
-                if(a!=null)
-                {
-                 plantachemanuel(tache,a,false);
-                 c.add(a);
-                }
-                else
-                {
-                 int length=tache.getNom().length();
-                 String n=tache.getNom().substring(length-1,length);
-                 String nom=tache.getNom().substring(0, length-1);
-                 try {
-                     int nombre = Integer.parseInt(n);
-                     nombre=nombre+1;
-                     tache.setNom(nom+nombre);
-                 } catch (NumberFormatException e) {
-                     tache.setNom(tache.getNom()+1);
-                 }
-                 
-                Tache t = new Tache(tache.getNom(), tache.getDuree(), tache.getPriorite(), tache.getDateLimite(), tache.getCategorie(), true, tache.getPeriodicite());
-                addTachenonplan(t);
-                creneau.setTache(tache);
-                c.add(creneau);
-             }
- 
-             Boolean g=accept();
-             { 
-               if(g)
-               {
-                 for(Creneau r:c)
-                 {
-                   addCreneau(r);
-                 }
-             } 
-             }
-             }
-             }
- 
-         } 
-     }
-     */
-    public Creneau getPremierCreneauDisponible (LocalTime dureeMin) {
-        for (Creneau creneau : creneauxlibres.values()) {
-            LocalDateTime creneauDebut = creneau.getDebut();
-            LocalDateTime creneauFin = creneau.getFin();
-                if (creneau.Duree().compareTo(dureeMin) >= 0) {
-                    return creneau;
-                }
-        
 
+    public void endOfDayTimer() {
+        // Get the current time
+        LocalTime currentTime = LocalTime.now();
+        
+        // Calculate the time remaining until the end of the day (assuming end time is 23:59:59)
+        LocalTime endTime = LocalTime.of(23, 59, 59);
+        long remainingSeconds = currentTime.until(endTime, java.time.temporal.ChronoUnit.SECONDS);
+        
+        // Create a timer object
+        Timer timer = new Timer();
+        
+        // Schedule the task to be executed at the end of the day
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                // Perform end-of-day actions here
+                
+                // Call the function recursively to set up for the next day
+                endOfDayTimer();
+            }
+        }, remainingSeconds * 1000); // Convert remainingSeconds to milliseconds
+        
+        // Optional: You can also store the timer object in an instance variable if you need to cancel it later
+        // this.endOfDayTimer = timer;
+    }  
+     
+    public Creneau getPremierCreneauDisponible(LocalTime dureeMin) {
+        for (Creneau creneau : creneauxlibres) {
+            if (creneau.Duree().compareTo(dureeMin) >= 0) {
+                return creneau;
+            }
         }
         return null;
-
     }
-    
-    public void plantachemanuel(Tache tache,Creneau creneau,boolean bloque)
+
+    public void plantache(Tache tache,Creneau creneau,boolean bloque)
     { 
     if(creneau.islibre())
-    {
+    { LocalDate date = LocalDate.of(creneau.getDebut().getYear(),creneau.getDebut().getMonth(),creneau.getDebut().getDayOfMonth());
+       if(date.isBefore(tache.getDateLimite()))
+       {
         if(tache.isDecomposable()){
            if(creneau.Duree().compareTo(tache.getDuree())<0)
            {
-           String name;
+            String name;
             int length=tache.getNom().length();
             String n=tache.getNom().substring(length-1,length);
             String nom=tache.getNom().substring(0, length-1);
@@ -406,28 +519,41 @@ public class Planning {
                 String numberAsString = String.valueOf(nombre);
                name=nom+numberAsString;
             } catch (NumberFormatException e) {
-              name=nom+ String.valueOf(1);
+              name=tache.getNom()+ String.valueOf(1);
             }
            Tache t = new Tache(name, tache.getDuree().minusHours(creneau.Duree().getHour()).minusMinutes(creneau.Duree().getMinute()),tache.getPriorite(), tache.getDateLimite(), tache.getCategorie(), true, tache.getPeriodicite());
            addTachenonplan(t);
         }   
-         else if ( creneau.Duree().minusMinutes(creneau.getmin().getMinute()).compareTo(tache.getDuree())>0)
-         {
-          Creneau c= new Creneau(creneau.getDebut().plusHours(tache.getDuree().getHour()).plusMinutes(tache.getDuree().getMinute()),creneau.getFin());
-          addCreneaulibre(creneau);
-         }
-        }
-        else
-        {
         if(tache.getDuree().compareTo(creneau.Duree().minusMinutes(creneau.getmin().getMinute()))<0)
         {
             Creneau cr= new Creneau(creneau.getDebut().plusHours(tache.getDuree().getHour()).plusMinutes(tache.getDuree().getMinute()),creneau.getFin());        
             addCreneaulibre(cr);   
-            creneau.setFin(creneau.getFin().minusHours(tache.getDuree().getHour()).minusMinutes(tache.getDuree().getMinute()));         
+            creneau.setFin(creneau.getDebut().plusHours(tache.getDuree().getHour()).plusMinutes(tache.getDuree().getMinute()));         
+        }
+         tachesnonplan.remove(tache);
+         addTacheplan(tache);
+         creneau.setTache(tache);
+         creneau.setBloque(bloque);
+         creneau.setlibre(false);
+         addCreneauplan(creneau); 
+         creneauxlibres.remove(creneau);
+        }
+        else
+        {
+        if(creneau.Duree().compareTo(tache.getDuree())<0)
+        {
+            System.out.println("choose another one");
+        }
+        else{
+        if(tache.getDuree().compareTo(creneau.Duree().minusMinutes(creneau.getmin().getMinute()))<0)
+        {
+            Creneau cr= new Creneau(creneau.getDebut().plusHours(tache.getDuree().getHour()).plusMinutes(tache.getDuree().getMinute()),creneau.getFin());        
+            addCreneaulibre(cr);   
+            creneau.setFin(creneau.getDebut().plusHours(tache.getDuree().getHour()).plusMinutes(tache.getDuree().getMinute()));         
         }
         if(tache.getPeriodicite()==1)
         {
-         addTachesplan(tache);
+         addTacheplan(tache);
          tachesnonplan.remove(tache);
         }
         else
@@ -438,14 +564,23 @@ public class Planning {
         creneau.setBloque(bloque);
         creneau.setlibre(false);
         addCreneauplan(creneau); 
-        creneauxlibres.remove(creneau.getDebut(),creneau);
+        creneauxlibres.remove(creneau);
+
+
+    }
     
     }
 
+}
+else
+{
+System.out.println("the deadline is before");
+creneau.setTache(null);
+}
 
 
 
-
+}
 }
 /*  
 
@@ -514,46 +649,133 @@ public class Planning {
     }
    
 }
-*/}
-/* 
-    private class TacheComparator implements Comparator<Tache> {
+*/
 
-        @Override
-        public int compare(Tache t1, Tache t2) {
-            if (t1.getDateLimite() == null && t2.getDateLimite() == null) {
-                // Both tasks have null deadline, consider them equal
-                return comparePriorities(t1.getPriorite(), t2.getPriorite());
-            } else if (t1.getDateLimite() == null) {
-                // t1 has null deadline, consider t2 greater
-                return 1;
-            } else if (t2.getDateLimite() == null) {
-                // t2 has null deadline, consider t1 greater
-                return -1;
-            } else {
-                int deadlineComparison = t1.getDateLimite().compareTo(t2.getDateLimite());
-                if (deadlineComparison != 0) {
-                    // If deadlines are not equal, return the comparison result
-                    return deadlineComparison;
-                } else {
-                    // Deadlines are equal, compare based on priority
-                    Priorite priorite1 = t1.getPriorite();
-                    Priorite priorite2 = t2.getPriorite();
-                    int priorityComparison = priorite2.comparePriority(priorite1);
-                    if (priorityComparison != 0) {
-                        // If priorities are not equal, return the comparison result
-                        return priorityComparison;
-                    } else {
-                        // Priorities are equal, compare based on task names
-                        return t1.getNom().compareTo(t2.getNom());
-                    }
-                }
+    
+
+    public boolean miseajourdemande()
+    {  
+        return true ;
+    }
+
+    
+/* 
+   public void plantachesafter(Arraylist<Tache> taches,boolean tachescompleted,boolean creneauxcompleted)
+   {
+   for(Tache t: taches)
+   {
+    plantacheauto(t, tachescompleted, creneauxcompleted);
+   }
+   }
+*/
+    public int plantacheauto(Tache t,boolean tachescompleted,boolean creneauxcompleted) {
+        for (Creneau c : creneauxlibres) {
+            plantache(t, c, false);
+            if (c.getTache() != null) {
+                return 0;
             }
         }
-    
-        private int comparePriorities(Priorite priority1, Priorite priority2) {
-            // Compare the priorities based on their natural ordering
-            return Integer.compare(priority1.getPriorityOrder(), priority2.getPriorityOrder());
+        
+        if (miseajourdemande()) {
+            for (Creneau cr : creneauxplan) {
+              if(cr.getDebut().isAfter(LocalDateTime.now())){                
+                annulerplanification( cr);
+              }
+            }
+            plantachesauto(tachescompleted,creneauxcompleted);
         }
+        
+        return 0;
     }
-*/
+    
+    public void plantachesauto(boolean tachecompleted , boolean creneauxcompleted)
+    {
+     int creneauxIndex = 0;
+     int tachesIndex = 0;
+     ArrayList<Creneau> creneaux = new ArrayList<>();
+        while (creneauxIndex < creneauxlibres.size() && tachesIndex < tachesnonplan.size()) {
+            Creneau creneau = creneauxlibres.get(creneauxIndex);
+            Tache tache = tachesnonplan.get(tachesIndex);
+           
+            if(tache.getDecomposable())
+            {
+               Creneau c=getPremierCreneauDisponible(tache.getDuree());
+               if(c!=null)
+               {
+                plantache(tache, c,false); 
+                creneaux.add(c);
+            }
+              else
+              {
+               plantache(tache, creneau,false); 
+               creneauxIndex++;
+               creneaux.add(creneau);
+               
+              }
+              tachesIndex++;
+              
+            }
+            else
+            { 
+            plantache(tache, creneau, isCurrentDayWithin());
+            if(creneau.getTache()!=null)
+            {
+             creneaux.add(creneau);
+             
+             creneauxIndex++;
+             tachesIndex++;
+
+            }
+            else
+            {
+             Creneau a=getPremierCreneauDisponible(tache.getDuree());
+             plantache(tache, a,false);
+             creneaux.add(a);
+        
+             tachesIndex++;
+            }
+        }
+        }
+        
+        if(tachesIndex<creneauxlibres.size())
+        {
+        tachecompleted=false;
+        }
+        if(creneauxIndex<creneauxlibres.size())
+        {
+        creneauxcompleted=false;
+        }
+        if(!accept())
+        {
+        for(Creneau c :creneaux)
+        {
+           annulerplanification(c);
+        }    
+        }    
+
+
+    }
+
+
+    public long getRendJour()
+    {
+        return rendjour;
+    }
+
+    public void SetNbProjettermin()
+    {
+        int count=0;
+     for(Projet p:projets)
+     {
+        if(p.getCompleted())
+        {
+            count++;
+        }
+     }
+     nbprojets=count;
+    }    
+
+
+
 }
+
