@@ -1,55 +1,47 @@
 package TP;
 
 import java.util.ArrayList;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Comparator;
 import java.time.LocalTime;
-import java.util.Map;
-import java.util.List;
-import java.util.Iterator;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.io.Serializable;
-import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
-import java.time.LocalDateTime;
  
 public class Utilisateur implements Serializable {
     private String pseudo;
     private ArrayList<Planning> calendar;
-    private ArrayList<Tache> taches;
-    private ArrayList<Projet> projets;
     private LocalDate joursrnetable;
     private int nbtacherent;
-    private ArrayList<Badge> Good ;
-    private ArrayList<Badge> VeryGood;
-    private ArrayList<Badge> Excelent;
+    private int Good ;
+    private int VeryGood;
+    private int  Excelent;
     private ArrayList<Planning> planning;
     private int encouragement;
-    private int min ;
     private int moyrend;
-    private Timer endOfDayTimer;
     private LocalTime DureeHoby;
     private LocalTime DureeWork;
     private LocalTime DureeStudy;
     private long rendement;
+   
     public void planifier()
     {  
-        Scanner s = new Scanner(System.in);
-        System.out.println("inter the day of start");
-        int day = s.nextInt();
-        int month = s.nextInt();
-        int year = s.nextInt();
-        System.out.println("inter the day of end");
-
-        LocalDate debut = LocalDate.of(year,month,day);
-         day = s.nextInt();
-         month = s.nextInt();
-         year = s.nextInt();
-
-        LocalDate fin = LocalDate.of(year,month,day);
+      Scanner s = new Scanner(System.in);
+      System.out.println("Enter the start date:");
+      int startDay = s.nextInt();
+      int startMonth = s.nextInt();
+      int startYear = s.nextInt();
+      
+      LocalDate debut = LocalDate.of(startYear, startMonth, startDay);
+      
+      System.out.println("Enter the end date:");
+      int endDay = s.nextInt();
+      int endMonth = s.nextInt();
+      int endYear = s.nextInt();
+      
+      LocalDate fin = LocalDate.of(endYear, endMonth, endDay);
           
         Planning plan ;
 
@@ -74,6 +66,8 @@ public class Utilisateur implements Serializable {
       plan.ajouterProjet();
       }
       plan.affichertaches();
+      calendar.add(plan);
+      orderCalendarByStartDate();
     }
     catch(DateException e)
     {
@@ -81,49 +75,49 @@ public class Utilisateur implements Serializable {
     }
     }
     
-
+    
     public Utilisateur() {
     }
 
     public Utilisateur(String nom) {
         pseudo = nom;
-        taches = new ArrayList<>();
         calendar = new ArrayList<>();
-        projets = new ArrayList<>();
-        Good=new ArrayList<>();
-        VeryGood=new ArrayList<>();
-        Excelent =new ArrayList<>();
+        Good=0;
+        VeryGood=0;
+        Excelent =0;
         nbtacherent=0;
         rendement=0;
         moyrend=0;
     }
-/*     
-    private void scheduleEndOfDayTask() {
-        endOfDayTimer = new Timer();
-        LocalTime endOfDay = LocalTime.of(23, 59, 59);
-
-        // Calculate the delay until the end of the day
-        long delay = Duration.between(LocalTime.now(), endOfDay).toMillis();
-
-        // Schedule the task to run at the end of the day
-        endOfDayTimer.schedule(new EndOfDayTask(), delay);
+     
+   
+    public long getRendJour()
+    {
+    return getCurrentDayPlanning().getRendJour();
     }
-
-    private class EndOfDayTask extends TimerTask {
-        @Override
-        public void run() {
-            // This code will be executed at the end of the day
-            System.out.println("End of the day. Performing end-of-day tasks...");
-
-            // Call the function to add the day to joursrnetables
-            addjourrentable();
-            setrendement();
-            // Reschedule the task for the next day
-            scheduleEndOfDayTask();
-            ajouterBagdes();
-        }
-    }
-
+   
+    public void endOfDayTimer() {
+      // Get the current time
+      LocalTime currentTime = LocalTime.now();
+      
+      // Calculate the time remaining until the end of the day (assuming end time is 23:59:59)
+      LocalTime endTime = LocalTime.of(23, 59, 59);
+      long remainingSeconds = currentTime.until(endTime, java.time.temporal.ChronoUnit.SECONDS);
+      
+      // Create a timer object
+      Timer timer = new Timer();
+      
+      // Schedule the task to be executed at the end of the day
+      timer.schedule(new TimerTask() {
+          @Override
+          public void run() {
+              // Perform end-of-day actions here
+              
+              endOfDayTimer();
+          }
+      }, remainingSeconds * 1000); // Convert remainingSeconds to milliseconds
+      
+  }
     
    
     public Planning getCurrentDayPlanning() {
@@ -140,57 +134,36 @@ public class Utilisateur implements Serializable {
         return null; // Return null if no planning is found for the current day
     }
     
-    public void ajouterBagdes()
+   public void ajouterBagdes()
     {   Planning plan=getCurrentDayPlanning();
-        Badge badge;
-      if(calendar.getNumberOfCompletedTasksInDay(LocalDate.now())==min)
+      if(plan.getNumberOFtasksCompletedInDay(LocalDate.now())==plan.nbtaches)
       {
        System.out.println("you did a great job!");
        encouragement++;
-       plan.setEncouragement(plan.getEncouragement()+1);
-       plan.setNbtachestermin(plan.getNbtachestermin()+1);
       }
-      if(plan.getEncouragement()==5)
+     if(encouragement%5==0)
       {
-        plan.setEncouragement(0);
-        plan.setGood(plan.getGood()+1);
-      }
-     if(encouragement==5)
-      {
-        badge=Badge.Good;
-        Good.add(badge);
-        encouragement=0;
+        Good++;
 
       }
-      if(plan.getGood()==3)
+      
+      if(Good%3==0)
       {
-        plan.setGood(0);
-        plan.setVeryGood(plan.getVeryGood()+1);
-      }
-      if(Good.size()==3)
-      {
-        badge=Badge.VeryGood;
-        VeryGood.add(badge);
-        Good.clear();
+        Good++;
 
       }
-      if(plan.getVeryGood()==3)
+      if(VeryGood%3==0)
       {
-        plan.setVeryGood(0);
-        plan.setExcelent(plan.getExcelent()+1);
-      }
-      if(VeryGood.size()==3)
-      {
-        badge=Badge.Excelent;
-        Excelent.add(badge);
-        VeryGood.clear();
+       Excelent++;
 
       }
     }
    
-    public void addjourrentable() {
+    
+
+  public void addjourrentable() {
      LocalDate date=LocalDate.now();
-     int a=calendar.getNumberOfCompletedTasksInDay(date);
+     int a=getCurrentDayPlanning().getNumberOFtasksCompletedInDay(LocalDate.now());
      if(a>nbtacherent)
      {
         nbtacherent=a;
@@ -214,24 +187,38 @@ public class Utilisateur implements Serializable {
 
 
   
-*/
 
-    public ArrayList<Planning> getPlanning() {
+
+  public ArrayList<Planning> getPlanning() {
         return calendar;
     }
 
-    public String getPseudo()
-    {
-      return pseudo;
-    }
-    public void setPseudo( String name)
-    {
-      this.pseudo=name;
-    }
-/* 
+ 
+
+  public Planning getPlanningForCurrentDay() {
+      LocalDate currentDate = LocalDate.now();
+      
+      for (Planning planning : calendar) {
+          if (planning.getDatedebut().isEqual(currentDate) || planning.getDatedebut().isBefore(currentDate) && planning.getDatefin().isAfter(currentDate)) {
+              return planning;
+          }
+      }
+      
+      return null; // If no planning is found for the current day
+  }
+  
+  public void orderCalendarByStartDate() {
+    Collections.sort(calendar, new Comparator<Planning>() {
+        @Override
+        public int compare(Planning p1, Planning p2) {
+            return p1.getDatedebut().compareTo(p2.getDatedebut());
+        }
+    });
+}
+
     public void  setrendement()
     {
-        rendement=(calendar.getNumberOfCompletedTasksInDay(LocalDate.now())/calendar.getNumberOFtasksInDay(LocalDate.now()))*100;
+        rendement=getCurrentDayPlanning().getRendJour();
     }
     
     public long getrendement()
@@ -241,90 +228,10 @@ public class Utilisateur implements Serializable {
     
     
 
-    public void setTache(Tache tache)
-    {
-        this.taches.remove(tache);
-        this.taches.add(tache);
-
-    }
-
-    public void sortTaches() {
-        Collections.sort(taches, new TacheComparator());
-        
-    }
-   
-    s
-
-    public void ajoutertachesauto(List<Tache> taches, LocalDateTime debut, LocalDateTime fin,ArrayList<Creneau> c) {
-       Iterator<Map.Entry<LocalDateTime, Creneau>> creneauIterator = calendar.getCreneaux().entrySet().iterator();
-       Iterator<Tache> tacheIterator = taches.iterator();
-
-        while (creneauIterator.hasNext()) {
-         Map.Entry<LocalDateTime, Creneau> creneauEntry = creneauIterator.next();
-         Creneau creneau = creneauEntry.getValue();
-         
-
-
-        if (creneau.getDebut().isAfter(debut)) {
-          break;
-        }
-        }
-        while (creneauIterator.hasNext() && tacheIterator.hasNext()) {
-            Map.Entry<LocalDateTime, Creneau> creneauEntry = creneauIterator.next();
-            Creneau creneau = creneauEntry.getValue();
-            Tache tache = tacheIterator.next();
-            if(creneau.getDebut().isAfter(fin))
-            {
-                break;
-            }
-            if(creneau.islibre() )
-            {
-             if (!tache.isDecomposable())
-             {
-              ajoutetachemanuel(tache, creneau, false); 
-              c.add(creneau);           
-             }
-             else{
-               Creneau a=calendar.getPremierCreneauDisponible(debut,fin,tache.getDuree());
-               if(a!=null)
-               {
-                ajoutetachemanuel(tache,a,false);
-                c.add(a);
-               }
-               else
-               {
-                int length=tache.getNom().length();
-                String n=tache.getNom().substring(length-1,length);
-                String nom=tache.getNom().substring(0, length-1);
-                try {
-                    int nombre = Integer.parseInt(n);
-                    nombre=nombre+1;
-                    tache.setNom(nom+nombre);
-                } catch (NumberFormatException e) {
-                    tache.setNom(tache.getNom()+1);
-                }
-                
-               Tache t = new Tache(tache.getNom(), tache.getDuree(), tache.getPriorite(), tache.getDateLimite(), tache.getCategorie(), true, tache.getPeriodicite(), tache.getEtat());
-               addTache(t);
-               creneau.setTache(tache);
-               c.add(creneau);
-            }
-
-            Boolean g=accept();
-            { 
-              if(g)
-              {
-                for(Creneau r:c)
-                {
-                  calendar.ajouterCreneau(r);
-                }
-            } 
-            }
-            }
-            }
-
-        } 
-    }
     
- */  
+   
+
+    
+    
+
 } 
