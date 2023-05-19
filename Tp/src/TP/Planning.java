@@ -22,9 +22,9 @@ public class Planning {
     private int VeryGood=0;
     private int Excelent=0;
     private int nbprojets;
-    private LocalTime DureeHoby= LocalTime.of(0,0,0);;
-    private LocalTime DureeWork= LocalTime.of(0,0,0);;
-    private LocalTime DureeStudy= LocalTime.of(0,0,0);; 
+    public LocalTime DureeHoby= LocalTime.of(0,0,0);;
+    public LocalTime DureeWork= LocalTime.of(0,0,0);;
+    public LocalTime DureeStudy= LocalTime.of(0,0,0);; 
     private ArrayList<Tache> tachesnonplan;
     private ArrayList<Tache> tachesplan;
     private ArrayList<Projet> projets;
@@ -481,9 +481,12 @@ public class Planning {
             @Override
             public void run() {
                 // Perform end-of-day actions here
-                
+                addBadges();
+                setRendjour();
+                SetNbProjettermin();
                 // Call the function recursively to set up for the next day
                 endOfDayTimer();
+            
             }
         }, remainingSeconds * 1000); // Convert remainingSeconds to milliseconds
         
@@ -582,74 +585,6 @@ creneau.setTache(null);
 
 }
 }
-/*  
-
-         creneau.setTache(tache);
-         creneau.setBloque(bloque);
-         creneauxplan.put(creneau.getDebut(),creneau);
-    }
-    
-        else
-        {
-         int length=tache.getNom().length();
-         String n=tache.getNom().substring(length-1,length);
-         String nom=tache.getNom().substring(0, length-1);
-         try {
-             int nombre = Integer.parseInt(n);
-             nombre=nombre+1;
-             tache.setNom(nom+nombre);
-         } catch (NumberFormatException e) {
-             tache.setNom(tache.getNom()+1);
-         }
-         
-        Tache t = new Tache(tache.getNom(), tache.getDuree(), tache.getPriorite(), tache.getDateLimite(), tache.getCategorie(), true, tache.getPeriodicite());
-        addTachenonplan(t);
-        creneau.setTache(tache);
-    
-        }
- else{
-    if(creneau.islibre()){
-
-        int a= creneau.Duree().compareTo(tache.getDuree());
-       if(a<0)
-       {
-        System.out.println("la durée du creneau choisit est inférieure à la durée de votre tache , choisit un autre creneau");
-       }
-       else{
-        creneau.setBloque(bloque);
-        creneau.setlibre(false);
-        long durationInSeconds = Duration.between(creneau.Duree(), tache.getDuree() ).getSeconds();
-        int hours = (int) (durationInSeconds / 3600);
-        int minutes = (int) ((durationInSeconds % 3600) / 60);
-        int seconds = (int) (durationInSeconds % 60);
-        LocalTime time = LocalTime.of(hours,minutes,seconds);
-        int result = time.compareTo(creneau.min);
-        if(result>0||result==0)
-        {
-        int h=creneau.getDebut().getHour();
-        int min=creneau.getDebut().getMinute();
-        int sec=creneau.getDebut().getSecond();
-        LocalTime t=creneau.getDebut().toLocalTime().plusSeconds(sec).plusMinutes(min).plusHours(h);
-        LocalDateTime d = LocalDateTime.of(creneau.getDebut().getDayOfMonth(),creneau.getDebut().getMonth(),creneau.getDebut().getYear(),t.getHour(),t.getMinute(),t.getSecond());
-        Creneau creneau1= new Creneau(d, creneau.getFin());
-        addCreneau(creneau1);
-        creneau.setDebut(d);
-        }
-        addCreneau(creneau);
-        }
-        if(tache.getPeriodicite()>1)
-        {
-            tachesnonplan.remove(tache);
-            tache.setPeriodicite(tache.getPeriodicite()-1);
-            tachesplan.remove(tache);
-            sortTachesplan();
-            sortTachesnonplan();
-        
-        }
-    }
-   
-}
-*/
 
     
 
