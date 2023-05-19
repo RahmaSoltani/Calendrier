@@ -4,9 +4,9 @@ package TP;
 import java.io.*;
 public class Projet implements Serializable {
     private String nom;
-    private String description;//
+    private String description;
     private Planning plan ;
-    private Boolean Completed;
+    private boolean Completed;
     private int nbtaches;
     private  int nbtachescomplets;
     public Projet(String nom, String description) {
@@ -61,7 +61,7 @@ public class Projet implements Serializable {
     {
         Completed=true;
     }
-    public Boolean getCompletetd()
+    public Boolean getCompleted()
     {
         return Completed;
     }
