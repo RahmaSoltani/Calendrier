@@ -19,6 +19,10 @@ public class Tache implements Serializable ,Comparable <Tache>{
     private Etat etat ;
     private Projet projet ;
     public Tache(){} 
+    public Tache(String nom)
+    {
+        this.nom=nom;
+    }
     public Tache(String nom,LocalTime duree, Priorite priorite, LocalDate dateLimite, Categorie categorie, boolean decomposable, int periodicite ) {
         this.nom = nom;
         this.duree =duree;
@@ -101,25 +105,8 @@ public class Tache implements Serializable ,Comparable <Tache>{
             {
                projet.setCompleted(); 
             }
-            /* 
-          plan.incrementtachecomplets();
-          plan.incrementencouragement();
-          if(plan.getEncouragement()==5)
-          {
-            plan.setEncouragement(0);
-            plan.incrementGood();
-          }
-          if(plan.getGood()==3)
-          { plan.setGood(0);
-            plan.incrementVeryGood();
-          }
-          if(plan.getVeryGood()==3)
-          {
-            plan.setVeryGood(0);
-            plan.incrementExcelent();
-          }
-          */
-        } 
+        }
+         
     }
    
     public boolean getDecomposable()
