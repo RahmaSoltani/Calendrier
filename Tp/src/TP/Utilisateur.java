@@ -11,22 +11,22 @@ import java.io.Serializable;
 import java.util.Scanner;
  
 public class Utilisateur implements Serializable {
-    private String pseudo;
-    private ArrayList<Planning> calendar;
-    private LocalDate joursrnetable;
-    private int nbtacherent;
-    private int Good ;
-    private int VeryGood;
-    private int  Excelent;
-    private ArrayList<Planning> planning;
-    private int encouragement;
-    private int moyrend;
-    private LocalTime DureeHoby;
-    private LocalTime DureeWork;
-    private LocalTime DureeStudy;
-    private long rendement;
-   
-    public void planifier()
+  private String pseudo;
+  private ArrayList<Planning> calendar;
+  private LocalDate joursrnetable;
+  private int nbtacherent;
+  private int Good ;
+  private int VeryGood;
+  private int  Excelent;
+  private ArrayList<Planning> planning;
+  private int encouragement;
+  private long moyrend;
+  private LocalTime DureeHoby;
+  private LocalTime DureeWork;
+  private LocalTime DureeStudy;
+  private long rendement;
+  private int day=0; 
+  public void planifier()
     {  
       Scanner s = new Scanner(System.in);
       System.out.println("Enter the start date:");
@@ -76,10 +76,10 @@ public class Utilisateur implements Serializable {
     }
     
     
-    public Utilisateur() {
+  public Utilisateur() {
     }
 
-    public Utilisateur(String nom) {
+  public Utilisateur(String nom) {
         pseudo = nom;
         calendar = new ArrayList<>();
         Good=0;
@@ -88,15 +88,15 @@ public class Utilisateur implements Serializable {
         nbtacherent=0;
         rendement=0;
         moyrend=0;
+        day=0;
     }
      
-   
-    public long getRendJour()
+  public long getRendJour()
     {
     return getCurrentDayPlanning().getRendJour();
     }
    
-    public void endOfDayTimer() {
+  public void endOfDayTimer() {
       // Get the current time
       LocalTime currentTime = LocalTime.now();
       
@@ -112,15 +112,22 @@ public class Utilisateur implements Serializable {
           @Override
           public void run() {
               // Perform end-of-day actions here
-              
+              getRendJour();
+              addjourrentable();
+              setDuree();
+              setmoyrend();
               endOfDayTimer();
           }
       }, remainingSeconds * 1000); // Convert remainingSeconds to milliseconds
       
   }
     
-   
-    public Planning getCurrentDayPlanning() {
+  public void setmoyrend()
+  { day++;
+    moyrend=(moyrend*(day-1)+getCurrentDayPlanning().getRendJour())/day;
+  }
+ 
+  public Planning getCurrentDayPlanning() {
         LocalDate currentDate = LocalDate.now();
     
         for (Planning plan : planning) {
@@ -134,7 +141,7 @@ public class Utilisateur implements Serializable {
         return null; // Return null if no planning is found for the current day
     }
     
-   public void ajouterBagdes()
+  public void ajouterBagdes()
     {   Planning plan=getCurrentDayPlanning();
       if(plan.getNumberOFtasksCompletedInDay(LocalDate.now())==plan.nbtaches)
       {
@@ -154,7 +161,7 @@ public class Utilisateur implements Serializable {
       }
       if(VeryGood%3==0)
       {
-       Excelent++;
+        Excelent++;
 
       }
     }
@@ -177,11 +184,11 @@ public class Utilisateur implements Serializable {
 
  
 
-    public void setPseudo(String nom) {
+  public void setPseudo(String nom) {
         pseudo = nom;
     }
 
-    public String getPseudo() {
+  public String getPseudo() {
         return pseudo;
     }
 
@@ -216,22 +223,27 @@ public class Utilisateur implements Serializable {
     });
 }
 
-    public void  setrendement()
+  public void  setrendement()
     {
         rendement=getCurrentDayPlanning().getRendJour();
     }
     
-    public long getrendement()
+  public long getrendement()
     {
         return rendement;
     }
-    
-    
-
-    
-   
-
-    
+  
     
 
+  public void setDuree()
+  {
+    Planning plan=getCurrentDayPlanning();
+    DureeHoby=plan.DureeHoby;
+    DureeStudy=plan.DureeStudy;
+    DureeWork=plan.DureeWork;
+    plan.DureeHoby= LocalTime.of(0,0,0);
+    plan.DureeStudy=LocalTime.of(0,0,0);
+    plan.DureeWork=LocalTime.of(0,0,0);
+
+  }
 } 
